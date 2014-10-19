@@ -68,10 +68,8 @@ func GoWalk(source string, n int) (<-chan FileData, *int64) {
 
 	go func() {
 		filepath.Walk(source, func(path string, f os.FileInfo, _ error) error {
-			if !f.IsDir() {
-				filesFound++
-				out <- FileData{f, path}
-			}
+			filesFound++
+			out <- FileData{f, path}
 			return nil
 		})
 

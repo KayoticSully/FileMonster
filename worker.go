@@ -23,9 +23,9 @@ func Worker(id int, files <-chan FileData, target string, wg *sync.WaitGroup, fi
 		var err error
 		// Filter out directories here so new features are easier to add
 		// in the future dealing with processing directories
-		//if !file.IsDir() {
+		if !file.IsDir() {
 			err = processFile(file, target)
-		//}
+		}
 
 		if err != nil {
 			log.Fatal(err)
