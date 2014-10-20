@@ -50,16 +50,6 @@ func main() {
 	gui.RefreshLoop(60)
 }
 
-func sum(arr []int64) int64 {
-	var sum int64
-
-	for num := range arr {
-		sum = sum + arr[num]
-	}
-
-	return sum
-}
-
 func GoWalk(source string, n int) (<-chan FileData, *int64) {
 	// Buffer channel with entries equal to the number of workers.  This ensures
 	// maximum throughput efficiency
