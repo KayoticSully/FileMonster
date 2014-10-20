@@ -21,3 +21,4 @@ __Warning:__ This will flaten out directory structures.  It organizes files into
 
 The command will open a statistic control pannel that takes over the terminal.  It is finished when all workers say `Done!` in the filename column.  To exit at any time, press `ctrl + c`.
 
+![](https://lh5.googleusercontent.com/5C1i2ngaEecUr4K9xsdWpFuwgqoIgDVzQLo8XNZd0yTeB6htGZZRfFyOGnRPV2GB8DJu0HTbNQ=w1576-h655)
