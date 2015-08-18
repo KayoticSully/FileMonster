@@ -3,17 +3,18 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
+	//"os"
 	"strconv"
-	"strings"
+	//"strings"
 	"sync"
 
 	"github.com/KayoticSully/gocui"
 	"github.com/dustin/go-humanize"
 )
 
+// Worker processes the FileData
 func Worker(id int, files <-chan FileData, target string, wg *sync.WaitGroup, filesProcessed []int64, gui *gocui.Gui) {
-	view := gui.View("worker" + strconv.Itoa(id))
+	view, _ := gui.View("worker" + strconv.Itoa(id))
 
 	for file := range files {
 		view.Clear()
@@ -39,33 +40,35 @@ func Worker(id int, files <-chan FileData, target string, wg *sync.WaitGroup, fi
 }
 
 func processFile(file FileData, target string) error {
-	fileParts := strings.Split(file.Name(), ".")
+	/*
+		fileParts := strings.Split(file.Name(), ".")
 
-	baseName := strings.Join(fileParts[0:len(fileParts)-1], ".")
-	ext := fileParts[len(fileParts)-1]
+		baseName := strings.Join(fileParts[0:len(fileParts)-1], ".")
+		ext := fileParts[len(fileParts)-1]
 
-	targetFolder := target + "/" + ext
-	targetPath := targetFolder + "/" + file.Name()
+		targetFolder := target + "/" + ext
+		targetPath := targetFolder + "/" + file.Name()
 
-	// Make sure folder exists
-	os.MkdirAll(targetFolder, os.ModeDir)
+		// Make sure folder exists
+		os.MkdirAll(targetFolder, os.ModeDir)
 
-	// Logic It
-	// Need to make sure the file does not exist yet
-	var found = false
-	var i int
-	for !found {
-		if _, err := os.Stat(targetPath); err == nil {
-			i++
-			if strings.TrimSpace(baseName) == "" {
-				targetPath = targetFolder + "/" + "." + ext + "(" + strconv.Itoa(i) + ")"
+		// Logic It
+		// Need to make sure the file does not exist yet
+		var found = false
+		var i int
+		for !found {
+			if _, err := os.Stat(targetPath); err == nil {
+				i++
+				if strings.TrimSpace(baseName) == "" {
+					targetPath = targetFolder + "/" + "." + ext + "(" + strconv.Itoa(i) + ")"
+				} else {
+					targetPath = targetFolder + "/" + baseName + "(" + strconv.Itoa(i) + ")." + ext
+				}
 			} else {
-				targetPath = targetFolder + "/" + baseName + "(" + strconv.Itoa(i) + ")." + ext
+				found = true
 			}
-		} else {
-			found = true
 		}
-	}
 
-	return os.Rename(file.Path(), targetPath)
+		return os.Rename(file.Path(), targetPath) */
+	return nil
 }

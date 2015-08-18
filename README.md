@@ -2,7 +2,7 @@ FileMonster
 ===========
 Organizes massive amounts of files. I wrote this program for my own needs, maybe it will be useful to someone else too.
 
-Long story short, I ended up with a directory of about 500,000 files from a HDD recovery dump.  Every OS I tried choked on when trying to view the directory. I tried going through the files via a terminal which just proved frustrating and time consuming.  I needed a way to organize the files so I could easily see what I had in that directory.
+Long story short, I ended up with a directory of about 500,000 files from a HDD recovery dump.  Every OS I tried choked when trying to view the directory. I tried going through the files via a terminal which just proved frustrating and time consuming.  I needed a way to organize the files so I could easily see what I had in that directory.
 
 This program can rip through directories at about 100,000 files a minute and reorganizes files into folders by file extension.  The idea is, run this program then go and grab the folders you care about such as doc, jpg, png, zip, etc.
 
