@@ -1,7 +1,11 @@
 package main
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/KayoticSully/gocui"
+	"github.com/dustin/go-humanize"
 )
 
 func quit(gui *gocui.Gui, view *gocui.View) error {
@@ -82,9 +86,8 @@ func selectView(g *gocui.Gui, viewName string) error {
 
 	// set as active
 	err = g.SetCurrentView(viewName)
-
 	if err != nil {
-		gLog(err.Error())
+		return err
 	}
 
 	return err
@@ -95,18 +98,44 @@ func start(g *gocui.Gui, v *gocui.View) error {
 	resetView(v)
 	g.SetCurrentView("logo")
 
+	// Get Final Settings
+	var settings *gocui.View
+	var source, target string
+	var err error
+
+	if settings, err = g.View("settings"); err != nil {
+		return err
+	}
+
+	if source, err = settings.Line(0); err != nil {
+		return err
+	}
+
+	if target, err = settings.Line(1); err != nil {
+		return err
+	}
+
 	// Start Processing
-	inFiles, filesFound := GoWalk(source, numWorkers)*/
-	//_, filesProcessed := StartWorkers(inFiles, target, gui, numWorkers)
+	inFiles, filesFound := GoWalk(source, NUM_WORKERS)
+	_, filesProcessed := StartWorkers(inFiles, target, g, NUM_WORKERS)
 
-	// for {
-	// 	view.Clear()
-	// 	//total := int64(0) //sum(filesProcessed)
+	view, err := g.View("stats")
+	if err != nil {
+		return err
+	}
 
-	// 	fmt.Fprintf(view, "Total Files Processed: %s\n", "") //humanize.Comma(total))
-	// 	fmt.Fprintf(view, "Total Files Found:     %s", "")   //humanize.Comma(*filesFound))
+	go func() {
+		for {
+			view.Clear()
+			total := sum(filesProcessed)
 
-	// 	time.Sleep(FPSDelay(60))
-	// }
+			fmt.Fprintf(view, "Number of Workers: %d\n", NUM_WORKERS)
+			fmt.Fprintf(view, "Total Files Processed: %s\n", humanize.Comma(total))
+			fmt.Fprintf(view, "Total Files Found:     %s", humanize.Comma(*filesFound))
+
+			time.Sleep(FPSDelay(60))
+		}
+	}()
+
 	return nil
 }

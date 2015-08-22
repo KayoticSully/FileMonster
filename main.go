@@ -2,8 +2,6 @@ package main
 
 import (
 	"flag"
-	// "fmt"
-	// "log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -11,14 +9,16 @@ import (
 	"time"
 
 	"github.com/KayoticSully/gocui"
-	// "github.com/dustin/go-humanize"
 )
 
 const (
 	NumOfSettings = 2
 )
 
-var GUI *gocui.Gui
+var (
+	GUI         *gocui.Gui
+	NUM_WORKERS int
+)
 
 // main is the point of execution entry for FileMonster
 func main() {
@@ -29,9 +29,10 @@ func main() {
 	target := flag.Arg(1)
 
 	// Gather system specific info
-	numWorkers := runtime.NumCPU()
+	NUM_WORKERS = runtime.NumCPU()
+	NUM_WORKERS = 1
 
-	gui := SetupGUI(source, target, numWorkers)
+	gui := SetupGUI(source, target)
 	GUI = gui
 	defer gui.Close()
 

@@ -7,6 +7,7 @@ import (
 	"strconv"
 	//"strings"
 	"sync"
+	"time"
 
 	"github.com/KayoticSully/gocui"
 	"github.com/dustin/go-humanize"
@@ -40,6 +41,7 @@ func Worker(id int, files <-chan FileData, target string, wg *sync.WaitGroup, fi
 }
 
 func processFile(file FileData, target string) error {
+	time.Sleep(1 * time.Second)
 	/*
 		fileParts := strings.Split(file.Name(), ".")
 

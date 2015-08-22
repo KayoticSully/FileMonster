@@ -14,7 +14,7 @@ const (
 )
 
 // SetupGUI creates and initalizes a gocui gui object
-func SetupGUI(source, target string, numWorkers int) *gocui.Gui {
+func SetupGUI(source, target string) *gocui.Gui {
 	var err error
 
 	// Create GUI
@@ -30,7 +30,7 @@ func SetupGUI(source, target string, numWorkers int) *gocui.Gui {
 
 	// Configure
 	gui.ShowCursor = true
-	SetupLayout(gui, source, target, numWorkers)
+	SetupLayout(gui, source, target)
 	SetupKeyEvents(gui)
 
 	return gui
@@ -59,7 +59,7 @@ func SetupKeyEvents(gui *gocui.Gui) {
 // SetupLayout creates the interface objects used within the GUI
 // Note: May be able to remove the SetupLayout function call, and just
 // use a function called Layout() and call gui.SetLayout from mainline
-func SetupLayout(gui *gocui.Gui, source, target string, n int) {
+func SetupLayout(gui *gocui.Gui, source, target string) {
 	gui.SetLayout(func(g *gocui.Gui) error {
 		maxX, maxY := g.Size()
 
@@ -153,7 +153,7 @@ func SetupLayout(gui *gocui.Gui, source, target string, n int) {
 
 			v.Frame = false
 
-			fmt.Fprintf(v, "Number of Workers: %d\n", n)
+			fmt.Fprintf(v, "Number of Workers: %d\n", NUM_WORKERS)
 			fmt.Fprintln(v, "Total Files Processed:")
 			fmt.Fprintln(v, "Total Files Found:")
 		}
@@ -177,7 +177,7 @@ func SetupLayout(gui *gocui.Gui, source, target string, n int) {
 			fmt.Fprintf(v, "%-5s%-15s%s", "#", "Processed", "Current File")
 		}
 
-		for i := 0; i < n; i++ {
+		for i := 0; i < NUM_WORKERS; i++ {
 			if v, err := gui.SetView("worker"+strconv.Itoa(i), halfX-25, (halfY+3)+(i*2), halfX+25, (halfY+5)+(i*2)); err != nil {
 				if err != gocui.ErrorUnkView {
 					return err
