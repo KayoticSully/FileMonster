@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/KayoticSully/gocui"
 )
 
@@ -10,32 +8,26 @@ func quit(gui *gocui.Gui, view *gocui.View) error {
 	return gocui.Quit
 }
 
-func selectSettingTarget(g *gocui.Gui, v *gocui.View) error {
+func selectSettings(g *gocui.Gui, v *gocui.View) error {
 	resetView(v)
 
-	g.ShowCursor = true
-	setSettingLabelIndex(g, 2)
-	return selectView(g, "settings-target")
-}
-
-func selectSettingSource(g *gocui.Gui, v *gocui.View) error {
-	resetView(v)
 	g.ShowCursor = true
 	setSettingLabelIndex(g, 1)
-	return selectView(g, "settings-source")
+
+	return selectView(g, "settings")
 }
 
 func selectStart(g *gocui.Gui, v *gocui.View) error {
 	var err error
 
 	g.ShowCursor = false
-	resetView(v)
+	v.Highlight = false
 
 	// reset labels view
 	if v, err = g.View("settings-labels"); err != nil {
 		return err
 	}
-	resetView(v)
+	v.Highlight = false
 
 	return selectView(g, "start")
 }
@@ -65,11 +57,6 @@ func setSettingLabelIndex(g *gocui.Gui, i int) error {
 func resetView(v *gocui.View) error {
 	v.Highlight = false
 
-	cx, cy := v.Cursor()
-	ox, oy := v.Origin()
-
-	gLog(fmt.Sprintf("cx: %d, cy: %d, ox: %d, oy: %d", cx, cy, ox, oy))
-
 	if err := v.SetCursor(0, 0); err != nil {
 		return err
 	}
@@ -77,16 +64,6 @@ func resetView(v *gocui.View) error {
 	if err := v.SetOrigin(0, 0); err != nil {
 		return err
 	}
-
-	return nil
-}
-
-func stats(g *gocui.Gui, v *gocui.View) error {
-
-	cx, cy := v.Cursor()
-	ox, oy := v.Origin()
-
-	gLog(fmt.Sprintf("cx: %d, cy: %d, ox: %d, oy: %d", cx, cy, ox, oy))
 
 	return nil
 }
@@ -104,57 +81,32 @@ func selectView(g *gocui.Gui, viewName string) error {
 	view.Highlight = true
 
 	// set as active
-	return g.SetCurrentView(viewName)
-}
+	err = g.SetCurrentView(viewName)
 
-func validateSetting(g *gocui.Gui, v *gocui.View) error {
-	return nil
-}
-
-func selectLineDown(g *gocui.Gui, v *gocui.View) error {
-	if v != nil {
-		cx, cy := v.Cursor()
-		ox, oy := v.Origin()
-
-		if err := v.SetCursor(cx, cy+1); err != nil {
-			if err := v.SetOrigin(ox, oy+1); err != nil {
-				return err
-			}
-		}
+	if err != nil {
+		gLog(err.Error())
 	}
 
-	return nil
+	return err
 }
 
-func selectLineUp(g *gocui.Gui, v *gocui.View) error {
-	if v != nil {
-		ox, oy := v.Origin()
-		cx, cy := v.Cursor()
+func start(g *gocui.Gui, v *gocui.View) error {
+	// Disable all input
+	resetView(v)
+	g.SetCurrentView("logo")
 
-		if err := v.SetCursor(cx, cy-1); err != nil && oy > 0 {
-			if err := v.SetOrigin(ox, oy-1); err != nil {
-				return err
-			}
-		}
-	}
+	// Start Processing
+	inFiles, filesFound := GoWalk(source, numWorkers)*/
+	//_, filesProcessed := StartWorkers(inFiles, target, gui, numWorkers)
 
+	// for {
+	// 	view.Clear()
+	// 	//total := int64(0) //sum(filesProcessed)
+
+	// 	fmt.Fprintf(view, "Total Files Processed: %s\n", "") //humanize.Comma(total))
+	// 	fmt.Fprintf(view, "Total Files Found:     %s", "")   //humanize.Comma(*filesFound))
+
+	// 	time.Sleep(FPSDelay(60))
+	// }
 	return nil
-}
-
-// DefaultEditor is used as the default gocui editor.
-func SettingsEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
-	switch {
-	case ch != 0 && mod == 0:
-		v.EditWrite(ch)
-	case key == gocui.KeySpace:
-		v.EditWrite(' ')
-	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
-		v.EditDelete(true)
-	case key == gocui.KeyDelete:
-		v.EditDelete(false)
-	case key == gocui.KeyInsert:
-		v.Overwrite = !v.Overwrite
-	case key == gocui.KeyEnter:
-		v.EditNewLine()
-	}
 }

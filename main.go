@@ -2,7 +2,8 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	// "fmt"
+	// "log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -10,7 +11,11 @@ import (
 	"time"
 
 	"github.com/KayoticSully/gocui"
-	"github.com/dustin/go-humanize"
+	// "github.com/dustin/go-humanize"
+)
+
+const (
+	NumOfSettings = 2
 )
 
 var GUI *gocui.Gui
@@ -23,50 +28,19 @@ func main() {
 	source := flag.Arg(0)
 	target := flag.Arg(1)
 
-	// Todo: If no source or target prompt user
-
 	// Gather system specific info
-	var numWorkers = runtime.NumCPU()
+	numWorkers := runtime.NumCPU()
 
-	gui := SetupGUI()
+	gui := SetupGUI(source, target, numWorkers)
 	GUI = gui
 	defer gui.Close()
 
-	gocui.Edit = gocui.EditorFunc(SettingsEditor)
+	// Give initial control over to settings
+	// This needs to be a goroutine so the MainLoop can get setup
+	// before this executes
+	go gui.SetCurrentView("settings")
 
-	SetupKeyEvents(gui)
-	SetupLayout(gui, numWorkers)
-
-	gui.ShowCursor = true
-
-	// Start Processing
-	/*inFiles*/ _, filesFound := GoWalk(source, numWorkers)
-	//_, filesProcessed := StartWorkers(inFiles, target, gui, numWorkers)
-
-	// Update all other views
-	go func() {
-		gui.SetCurrentView("settings-source")
-		view, _ := gui.View("settings-labels")
-		fmt.Fprintf(view, "Number of Workers: %d\n", numWorkers)
-		fmt.Fprintf(view, "Source Directory: %s\n", source)
-		fmt.Fprintf(view, "Target Directory: %s\n", target)
-
-		view, _ = gui.View("start")
-		fmt.Fprintf(view, "Start\n")
-
-		view, _ = gui.View("stats")
-
-		for {
-			view.Clear()
-			total := int64(0) //sum(filesProcessed)
-
-			fmt.Fprintf(view, "Total Files Processed: %s\n", humanize.Comma(total))
-			fmt.Fprintf(view, "Total Files Found:     %s", humanize.Comma(*filesFound))
-
-			time.Sleep(FPSDelay(60))
-		}
-	}()
-
+	// Start the main application
 	gui.MainLoop()
 }
 

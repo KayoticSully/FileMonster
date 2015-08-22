@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"unicode/utf8"
 
 	"github.com/KayoticSully/gocui"
 )
@@ -27,4 +28,35 @@ func gLog(str string) error {
 	fmt.Fprintln(v, str)
 
 	return nil
+}
+
+func FindLongestCommonPrefix(data []string) string {
+	var found = false
+	var length = 0
+	var prefix = ""
+
+	// Loop until the longest common prefix has been found
+	for !found {
+		// Try the next longest string
+		length = length + 1
+		// TODO: Fix issue when first string is shortest
+		for _, str := range data {
+			// if any string's full length has been met, the
+			// longest prefix has been found
+			if utf8.RuneCountInString(str) < length {
+				prefix = prefix[:length-1]
+				found = true
+				break
+			}
+
+			prefix = data[0][:length]
+			if str[:length] != prefix {
+				prefix = prefix[:length-1]
+				found = true
+				break
+			}
+		}
+	}
+
+	return prefix
 }

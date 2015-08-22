@@ -14,7 +14,7 @@ const (
 )
 
 // SetupGUI creates and initalizes a gocui gui object
-func SetupGUI() *gocui.Gui {
+func SetupGUI(source, target string, numWorkers int) *gocui.Gui {
 	var err error
 
 	// Create GUI
@@ -24,6 +24,14 @@ func SetupGUI() *gocui.Gui {
 	if err = gui.Init(); err != nil {
 		log.Panicln(err)
 	}
+
+	// Set settings editor
+	gocui.Edit = gocui.EditorFunc(SettingsEditor)
+
+	// Configure
+	gui.ShowCursor = true
+	SetupLayout(gui, source, target, numWorkers)
+	SetupKeyEvents(gui)
 
 	return gui
 }
@@ -37,38 +45,13 @@ func SetupKeyEvents(gui *gocui.Gui) {
 		log.Panicln(err)
 	}
 
-	// Move down a setting
-	if err := gui.SetKeybinding("settings-source", gocui.KeyArrowDown, gocui.ModNone, selectSettingTarget); err != nil {
-		log.Panicln(err)
-	}
-
-	// Print Stats
-	if err := gui.SetKeybinding("settings-source", gocui.KeyEnd, gocui.ModNone, stats); err != nil {
-		log.Panicln(err)
-	}
-
-	// Move up a settings
-	if err := gui.SetKeybinding("settings-target", gocui.KeyArrowUp, gocui.ModNone, selectSettingSource); err != nil {
-		log.Panicln(err)
-	}
-
-	// Print Stats
-	if err := gui.SetKeybinding("settings-target", gocui.KeyEnd, gocui.ModNone, stats); err != nil {
-		log.Panicln(err)
-	}
-
-	// Move down a setting
-	if err := gui.SetKeybinding("settings-target", gocui.KeyArrowDown, gocui.ModNone, selectStart); err != nil {
-		log.Panicln(err)
-	}
-
-	// Validate setting
-	if err := gui.SetKeybinding("settings", gocui.KeyEnter, gocui.ModNone, validateSetting); err != nil {
-		log.Panicln(err)
-	}
-
 	// Move up to the settings view
-	if err := gui.SetKeybinding("start", gocui.KeyArrowUp, gocui.ModNone, selectSettingTarget); err != nil {
+	if err := gui.SetKeybinding("start", gocui.KeyArrowUp, gocui.ModNone, selectSettings); err != nil {
+		log.Panicln(err)
+	}
+
+	// Start!
+	if err := gui.SetKeybinding("start", gocui.KeyEnter, gocui.ModNone, start); err != nil {
 		log.Panicln(err)
 	}
 }
@@ -76,7 +59,7 @@ func SetupKeyEvents(gui *gocui.Gui) {
 // SetupLayout creates the interface objects used within the GUI
 // Note: May be able to remove the SetupLayout function call, and just
 // use a function called Layout() and call gui.SetLayout from mainline
-func SetupLayout(gui *gocui.Gui, n int) {
+func SetupLayout(gui *gocui.Gui, source, target string, n int) {
 	gui.SetLayout(func(g *gocui.Gui) error {
 		maxX, maxY := g.Size()
 
@@ -119,7 +102,7 @@ func SetupLayout(gui *gocui.Gui, n int) {
 		}
 
 		// Settings Labels
-		if v, err := gui.SetView("settings-labels", halfX-25, halfY-9, halfX-7, halfY-5); err != nil {
+		if v, err := gui.SetView("settings-labels", halfX-25, halfY-9, halfX-7, halfY-6); err != nil {
 			if err != gocui.ErrorUnkView {
 				return err
 			}
@@ -127,14 +110,8 @@ func SetupLayout(gui *gocui.Gui, n int) {
 			v.Highlight = true
 			v.Frame = false
 
-			// Hilight the initial setting that is active upon start
-			if err := v.SetCursor(0, 1); err != nil {
-				return err
-			}
-
-			if err := v.SetOrigin(0, 0); err != nil {
-				return err
-			}
+			fmt.Fprintln(v, "Source Directory:")
+			fmt.Fprintln(v, "Target Directory:")
 		}
 
 		// Settings Fields
@@ -143,7 +120,7 @@ func SetupLayout(gui *gocui.Gui, n int) {
 		// switching between settings.... many functions, but very straightforward.
 		// Also... SLEEP on this... might come up with a way to do this dynamically :)
 		// Settings Labels
-		if v, err := gui.SetView("settings-source", halfX-6, halfY-8, halfX+25, halfY-6); err != nil {
+		if v, err := gui.SetView("settings", halfX-7, halfY-9, halfX+25, halfY-6); err != nil {
 			if err != gocui.ErrorUnkView {
 				return err
 			}
@@ -154,51 +131,35 @@ func SetupLayout(gui *gocui.Gui, n int) {
 			v.Wrap = false
 			v.Autoscroll = false
 
-			if err := v.SetCursor(18, 1); err != nil {
-				if err := v.SetOrigin(18, 1); err != nil {
-					return err
-				}
-			}
-		}
-
-		if v, err := gui.SetView("settings-target", halfX-6, halfY-7, halfX+25, halfY-5); err != nil {
-			if err != gocui.ErrorUnkView {
-				return err
-			}
-
-			v.Highlight = true
-			v.Frame = false
-			v.Editable = true
-			v.Wrap = false
-			v.Autoscroll = false
-
-			if err := v.SetCursor(18, 1); err != nil {
-				if err := v.SetOrigin(18, 1); err != nil {
-					return err
-				}
-			}
+			fmt.Fprintf(v, "%s\n", source)
+			fmt.Fprintf(v, "%s", target)
 		}
 
 		// Start
-		if v, err := gui.SetView("start", halfX-25, halfY-6, halfX+25, halfY-2); err != nil {
+		if v, err := gui.SetView("start", halfX-25, halfY-7, halfX+25, halfY-5); err != nil {
 			if err != gocui.ErrorUnkView {
 				return err
 			}
 
 			v.Frame = false
+			fmt.Fprintln(v, "Start")
 		}
 
 		// Stats
-		if v, err := gui.SetView("stats", halfX-25, halfY-4, halfX+25, halfY-2); err != nil {
+		if v, err := gui.SetView("stats", halfX-25, halfY-5, halfX+25, halfY-1); err != nil {
 			if err != gocui.ErrorUnkView {
 				return err
 			}
 
 			v.Frame = false
+
+			fmt.Fprintf(v, "Number of Workers: %d\n", n)
+			fmt.Fprintln(v, "Total Files Processed:")
+			fmt.Fprintln(v, "Total Files Found:")
 		}
 
 		// Workers
-		if v, err := gui.SetView("workers", halfX-25, halfY-2, halfX+25, halfY); err != nil {
+		if v, err := gui.SetView("workers", halfX-25, halfY-1, halfX+25, halfY+1); err != nil {
 			if err != gocui.ErrorUnkView {
 				return err
 			}
@@ -208,7 +169,7 @@ func SetupLayout(gui *gocui.Gui, n int) {
 		}
 
 		// Headings
-		if v, err := gui.SetView("headings", halfX-25, halfY, halfX+25, halfY+2); err != nil {
+		if v, err := gui.SetView("headings", halfX-25, halfY+1, halfX+25, halfY+3); err != nil {
 			if err != gocui.ErrorUnkView {
 				return err
 			}
@@ -217,7 +178,7 @@ func SetupLayout(gui *gocui.Gui, n int) {
 		}
 
 		for i := 0; i < n; i++ {
-			if v, err := gui.SetView("worker"+strconv.Itoa(i), halfX-25, (halfY+2)+(i*2), halfX+25, (halfY+4)+(i*2)); err != nil {
+			if v, err := gui.SetView("worker"+strconv.Itoa(i), halfX-25, (halfY+3)+(i*2), halfX+25, (halfY+5)+(i*2)); err != nil {
 				if err != gocui.ErrorUnkView {
 					return err
 				}
